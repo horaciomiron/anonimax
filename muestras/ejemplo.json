@@ -1,0 +1,19 @@
+{
+  "expediente": "EXP-2026-0042",
+  "partes": [
+    {
+      "nombre": "Sofía Benítez",
+      "dni": 31456789,
+      "email": "sofia.benitez@ejemplo.com",
+      "domicilio": "Calle Mitre 321, Rosario",
+      "cuit": "27-31456789-4"
+    },
+    {
+      "nombre": "Diego Herrera",
+      "dni": 29876543,
+      "telefono": "+54 9 11 6666-1234",
+      "patente": "AC456DE"
+    }
+  ],
+  "notas": "El Dr. Pablo Acosta pidió una audiencia para el 10/11/2026."
+}

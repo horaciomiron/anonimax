@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AnonimaX — Anonimizador de documentos en tu navegador</title>
+  <meta name="description" content="Oculta nombres, DNI, domicilios y cuentas bancarias de tus documentos TXT, CSV, JSON y XML sin subirlos a ningún servidor.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+
+  <!-- Tipografías del prototipo (Google Fonts). Si no cargan, el CSS tiene alternativas. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&amp;family=DM+Serif+Display:ital@0;1&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap">
+
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- theme.js va en el <head> y SIN defer: aplica el tema antes de pintar para evitar un "parpadeo" -->
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="index.html">
+        <img src="img/logo.svg" alt="Logotipo de AnonimaX" width="32" height="32">
+        <span>Anonima<span>X</span></span>
+      </a>
+
+      <button class="nav-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal">
+        <span class="visually-hidden">Abrir menú</span>
+        <span class="nav-toggle__icon" aria-hidden="true"></span>
+      </button>
+
+      <nav class="nav" id="menu-principal" aria-label="Principal">
+        <ul class="nav__list">
+          <li><a href="index.html" aria-current="page">Inicio</a></li>
+          <li><a href="pages/herramientas.html">Herramientas</a></li>
+          <li><a href="pages/anonimizar.html">Anonimizar</a></li>
+          <li><a href="pages/privacidad.html">Privacidad</a></li>
+        </ul>
+        <div class="nav__actions">
+          <button class="btn btn--ghost btn--sm" id="theme-toggle" type="button" aria-label="Cambiar a modo claro">Modo claro</button>
+          <a class="btn btn--primary btn--sm" href="pages/anonimizar.html">Anonimizar ahora</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenido">
+
+    <!-- HERO -->
+    <section class="hero" aria-labelledby="titulo-principal">
+      <div class="container hero__grid">
+        <div>
+          <p class="eyebrow"><span class="badge">100% en tu navegador · sin subir archivos</span></p>
+          <h1 id="titulo-principal">Oculta datos personales <em>en segundos</em></h1>
+          <p class="lead">Anonimizá contratos, expedientes y planillas: nombres, DNI, domicilios y cuentas bancarias se reemplazan antes de compartir el documento.</p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="pages/anonimizar.html">Anonimizar un documento →</a>
+            <a class="btn btn--ghost" href="pages/herramientas.html">Ver herramientas</a>
+          </div>
+          <p class="eyebrow eyebrow--tight">Diseñado para</p>
+          <ul class="public">
+            <li class="badge badge--muted">Abogados</li>
+            <li class="badge badge--muted">Contadores</li>
+            <li class="badge badge--muted">Recursos Humanos</li>
+            <li class="badge badge--muted">Investigadores</li>
+          </ul>
+        </div>
+
+        <figure class="hero__media">
+          <img src="img/hero-documento.svg" width="560" height="400"
+               alt="Ejemplo de un contrato donde el nombre, el DNI, el domicilio, el correo y la cuenta bancaria fueron reemplazados por etiquetas ámbar como NOMBRE_1 y DNI_1.">
+          <figcaption>EJEMPLO · contrato_alquiler.txt</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- NÚMEROS -->
+    <section class="section section--alt" aria-labelledby="titulo-numeros">
+      <div class="container">
+        <h2 id="titulo-numeros" class="visually-hidden">AnonimaX en números</h2>
+        <ul class="stats">
+          <li><strong>0</strong><span>archivos subidos a un servidor: todo se procesa en tu equipo</span></li>
+          <li><strong>10</strong><span>tipos de datos personales que detecta</span></li>
+          <li><strong>3</strong><span>modos para ocultarlos: etiquetas, bloques o enmascarado</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- QUÉ DETECTA -->
+    <section class="section" id="que-detecta" aria-labelledby="titulo-detecta">
+      <div class="container">
+        <div class="section__head">
+          <p class="eyebrow">Capacidades del sistema</p>
+          <h2 id="titulo-detecta">Detecta lo que importa <em>proteger</em></h2>
+          <p class="lead">Combina expresiones regulares, validaciones (Luhn, formatos argentinos) y lectura de encabezados en CSV, JSON y XML.</p>
+        </div>
+        <ul class="grid">
+        <li>
+          <article class="card">
+            <h3 class="card__title">Nombres y apellidos</h3>
+            <p>Detecta nombres con título (Dr., Sra.), con etiqueta («Titular:»), en formato «APELLIDO, Nombre» y nombres de pila frecuentes.</p>
+          </article>
+        </li>
+        <li>
+          <article class="card">
+            <h3 class="card__title">DNI, CUIT y CUIL</h3>
+            <p>Reconoce 12.345.678, «DNI 12345678» y 20-12345678-9, y distingue un DNI de un importe en pesos.</p>
+          </article>
+        </li>
+        <li>
+          <article class="card">
+            <h3 class="card__title">Domicilios</h3>
+            <p>Encuentra calles, avenidas y pasajes con su numeración, piso y departamento, y frases como «domicilio real en…».</p>
+          </article>
+        </li>
+        <li>
+          <article class="card">
+            <h3 class="card__title">Cuentas y tarjetas</h3>
+            <p>CBU y CVU de 22 dígitos, alias, IBAN y tarjetas validadas con el algoritmo de Luhn.</p>
+          </article>
+        </li>
+        <li>
+          <article class="card">
+            <h3 class="card__title">Contacto</h3>
+            <p>Correos electrónicos y teléfonos argentinos: +54 9, código de área, «15» y números con etiqueta.</p>
+          </article>
+        </li>
+        <li>
+          <article class="card">
+            <h3 class="card__title">Otros datos</h3>
+            <p>Patentes (ABC123 y AB123CD), fechas y las palabras personalizadas que agregues vos.</p>
+          </article>
+        </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- FLUJO -->
+    <section class="section section--alt" aria-labelledby="titulo-flujo">
+      <div class="container">
+        <div class="section__head">
+          <p class="eyebrow">Flujo de trabajo</p>
+          <h2 id="titulo-flujo">Del documento al documento seguro en 4 pasos</h2>
+        </div>
+        <ol class="steps">
+          <li><h3>Sube o pega</h3><p>Elegí un archivo TXT, CSV, JSON, XML, HTML o Markdown, o pegá el texto directamente.</p></li>
+          <li><h3>Elegí qué ocultar</h3><p>Marcá los tipos de datos y, si querés, sumá palabras propias como nombres de empresas.</p></li>
+          <li><h3>Anonimizá</h3><p>El motor detecta cada dato y lo reemplaza. El mismo dato siempre recibe la misma etiqueta.</p></li>
+          <li><h3>Revisá y descargá</h3><p>Compará el original con el resultado, copiá el texto o bajá el archivo anonimizado.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- CTA CON FORMULARIO -->
+    <section class="section" id="acceso" aria-labelledby="titulo-acceso">
+      <div class="container cta">
+        <p class="eyebrow">Próximas versiones: PDF y DOCX</p>
+        <h2 id="titulo-acceso">Enterate cuando <em>sumemos más formatos</em></h2>
+        <p class="lead">Dejanos tu correo y te avisamos. Es una demo académica: los datos no se envían a ningún servidor.</p>
+
+        <form class="form" id="form-acceso" novalidate>
+          <div class="form-grid">
+            <div class="field field--full">
+              <label for="email">Correo electrónico</label>
+              <input type="email" id="email" name="email" autocomplete="email" placeholder="correo@tudespacho.com" aria-describedby="error-email" required>
+              <p class="error" id="error-email" role="alert"></p>
+            </div>
+            <div class="field">
+              <label for="perfil">Soy…</label>
+              <select id="perfil" name="perfil" aria-describedby="error-perfil" required>
+                <option value="">Elegí una opción</option>
+                <option>Abogado/a</option>
+                <option>Contador/a</option>
+                <option>Recursos Humanos</option>
+                <option>Investigador/a</option>
+                <option>Estudiante</option>
+                <option>Otro</option>
+              </select>
+              <p class="error" id="error-perfil" role="alert"></p>
+            </div>
+            <div class="field">
+              <label for="volumen">Documentos por mes (aprox.)</label>
+              <input type="number" id="volumen" name="volumen" min="1" max="100000" inputmode="numeric" placeholder="Ej.: 40" aria-describedby="error-volumen">
+              <p class="error" id="error-volumen" role="alert"></p>
+            </div>
+            <div class="field field--full">
+              <label for="fecha">¿Desde cuándo lo necesitarías?</label>
+              <input type="date" id="fecha" name="fecha" aria-describedby="error-fecha">
+              <p class="hint">Opcional.</p>
+              <p class="error" id="error-fecha" role="alert"></p>
+            </div>
+            <div class="field field--full">
+              <label class="choice" for="acepto">
+                <input type="checkbox" id="acepto" name="acepto" aria-describedby="error-acepto" required>
+                <span>Acepto recibir novedades de AnonimaX. <a href="pages/privacidad.html">Ver política de privacidad</a>.</span>
+              </label>
+              <p class="error" id="error-acepto" role="alert"></p>
+            </div>
+          </div>
+          <button class="btn btn--primary" type="submit">Avisarme →</button>
+          <div id="resultado-acceso" class="alert alert--ok" role="status" hidden></div>
+        </form>
+        <p class="hint mt-2">Sin tarjeta de crédito · Sin registro · Datos procesados en tu equipo</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <a class="brand" href="index.html">
+        <img src="img/logo.svg" alt="Logotipo de AnonimaX" width="32" height="32">
+        <span>Anonima<span>X</span></span>
+      </a>
+      <nav aria-label="Pie de página">
+        <ul>
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="pages/herramientas.html">Herramientas</a></li>
+          <li><a href="pages/anonimizar.html">Anonimizar</a></li>
+          <li><a href="pages/privacidad.html">Privacidad</a></li>
+        </ul>
+      </nav>
+      <small>© <span id="anio">2026</span> ANONIMAX · PROYECTO ACADÉMICO</small>
+    </div>
+  </footer>
+
+  <script src="js/main.js" defer></script>
+</body>
+</html>

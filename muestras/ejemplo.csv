@@ -1,0 +1,4 @@
+id,nombre,apellido,dni,email,telefono,domicilio,cbu,observaciones
+1,Lucía,Fernández,30123456,lucia.fernandez@ejemplo.com,11 4444-5555,"Av. Rivadavia 1500, CABA",0110012340000012345678,Cliente desde 2022
+2,Martín,Rodríguez,28987654,martin.rodriguez@ejemplo.com,0351 15 444-8888,Belgrano 250,0720000088000098765432,Pidió factura A
+3,Carolina,Díaz,35111222,caro.diaz@ejemplo.com,+54 9 341 555-7777,"Pasaje Los Álamos 77, piso 2",0170099520000055555555,Sin observaciones

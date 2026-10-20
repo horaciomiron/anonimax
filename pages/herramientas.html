@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Herramientas — AnonimaX</title>
+  <meta name="description" content="Elegí la herramienta según el tipo de archivo: texto, CSV, JSON, XML, HTML o Markdown.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="../img/logo.svg" type="image/svg+xml">
+
+  <!-- Tipografías del prototipo (Google Fonts). Si no cargan, el CSS tiene alternativas. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&amp;family=DM+Serif+Display:ital@0;1&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap">
+
+  <link rel="stylesheet" href="../css/styles.css">
+  <!-- theme.js va en el <head> y SIN defer: aplica el tema antes de pintar para evitar un "parpadeo" -->
+  <script src="../js/theme.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="../index.html">
+        <img src="../img/logo.svg" alt="Logotipo de AnonimaX" width="32" height="32">
+        <span>Anonima<span>X</span></span>
+      </a>
+
+      <button class="nav-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal">
+        <span class="visually-hidden">Abrir menú</span>
+        <span class="nav-toggle__icon" aria-hidden="true"></span>
+      </button>
+
+      <nav class="nav" id="menu-principal" aria-label="Principal">
+        <ul class="nav__list">
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="herramientas.html" aria-current="page">Herramientas</a></li>
+          <li><a href="anonimizar.html">Anonimizar</a></li>
+          <li><a href="privacidad.html">Privacidad</a></li>
+        </ul>
+        <div class="nav__actions">
+          <button class="btn btn--ghost btn--sm" id="theme-toggle" type="button" aria-label="Cambiar a modo claro">Modo claro</button>
+          <a class="btn btn--primary btn--sm" href="anonimizar.html">Anonimizar ahora</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <section class="container page-head" aria-labelledby="titulo-herr">
+      <p class="eyebrow">Herramientas</p>
+      <h1 id="titulo-herr">Elegí tu <em>herramienta</em></h1>
+      <p class="lead">Cada tipo de archivo tiene su propia lectura: en un CSV se ocultan columnas enteras, en un JSON se respeta la estructura.</p>
+    </section>
+
+    <section class="container pb-5" aria-labelledby="titulo-lista">
+      <h2 id="titulo-lista" class="visually-hidden">Lista de herramientas</h2>
+
+      <form class="toolbar" role="search" id="form-busqueda">
+        <div class="field field--flush">
+          <label for="buscar">Buscar herramienta</label>
+          <input type="search" id="buscar" name="buscar" placeholder="Ej.: csv, planilla, web…" autocomplete="off">
+        </div>
+        <fieldset class="chips" aria-label="Filtrar por categoría">
+          <legend class="visually-hidden">Categoría</legend>
+          <button class="chip" type="button" data-categoria="todas" aria-pressed="true">Todas</button>
+          <button class="chip" type="button" data-categoria="texto" aria-pressed="false">Texto</button>
+          <button class="chip" type="button" data-categoria="datos" aria-pressed="false">Datos</button>
+          <button class="chip" type="button" data-categoria="web" aria-pressed="false">Web</button>
+          <button class="chip" type="button" data-categoria="proximamente" aria-pressed="false">Próximamente</button>
+        </fieldset>
+      </form>
+
+      <p id="contador" class="hint" role="status" aria-live="polite"></p>
+      <ul class="grid" id="lista-herramientas"></ul>
+      <div id="sin-resultados" class="empty" hidden>
+        <p><strong>No encontramos herramientas con esa búsqueda.</strong></p>
+        <p class="hint">Probá con otra palabra o elegí «Todas».</p>
+      </div>
+
+      <noscript>
+        <p class="alert">Para ver el listado necesitás activar JavaScript. Mientras tanto podés ir directo al <a href="anonimizar.html">anonimizador</a>.</p>
+      </noscript>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <a class="brand" href="../index.html">
+        <img src="../img/logo.svg" alt="Logotipo de AnonimaX" width="32" height="32">
+        <span>Anonima<span>X</span></span>
+      </a>
+      <nav aria-label="Pie de página">
+        <ul>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="herramientas.html">Herramientas</a></li>
+          <li><a href="anonimizar.html">Anonimizar</a></li>
+          <li><a href="privacidad.html">Privacidad</a></li>
+        </ul>
+      </nav>
+      <small>© <span id="anio">2026</span> ANONIMAX · PROYECTO ACADÉMICO</small>
+    </div>
+  </footer>
+
+  <script src="../js/main.js" defer></script>
+  <script src="../js/herramientas.js" defer></script>
+</body>
+</html>

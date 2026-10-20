@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anonimizar documento — AnonimaX</title>
+  <meta name="description" content="Subí o pegá tu documento, elegí qué datos ocultar y descargá la versión anonimizada. Todo se procesa en tu navegador.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="../img/logo.svg" type="image/svg+xml">
+
+  <!-- Tipografías del prototipo (Google Fonts). Si no cargan, el CSS tiene alternativas. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&amp;family=DM+Serif+Display:ital@0;1&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap">
+
+  <link rel="stylesheet" href="../css/styles.css">
+  <!-- theme.js va en el <head> y SIN defer: aplica el tema antes de pintar para evitar un "parpadeo" -->
+  <script src="../js/theme.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="../index.html">
+        <img src="../img/logo.svg" alt="Logotipo de AnonimaX" width="32" height="32">
+        <span>Anonima<span>X</span></span>
+      </a>
+
+      <button class="nav-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal">
+        <span class="visually-hidden">Abrir menú</span>
+        <span class="nav-toggle__icon" aria-hidden="true"></span>
+      </button>
+
+      <nav class="nav" id="menu-principal" aria-label="Principal">
+        <ul class="nav__list">
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="herramientas.html">Herramientas</a></li>
+          <li><a href="anonimizar.html" aria-current="page">Anonimizar</a></li>
+          <li><a href="privacidad.html">Privacidad</a></li>
+        </ul>
+        <div class="nav__actions">
+          <button class="btn btn--ghost btn--sm" id="theme-toggle" type="button" aria-label="Cambiar a modo claro">Modo claro</button>
+          <a class="btn btn--primary btn--sm" href="anonimizar.html">Anonimizar ahora</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <section class="container page-head" aria-labelledby="titulo-anon">
+      <p class="eyebrow">Herramienta <span id="herramienta-activa" class="badge badge--accent" hidden></span></p>
+      <h1 id="titulo-anon">Anonimizar <em>documento</em></h1>
+      <p class="lead">Seguí los tres pasos. Tu archivo no sale de este dispositivo.</p>
+    </section>
+
+    <section class="container pb-5" aria-label="Anonimizador">
+      <form id="form-anonimizar" class="workspace" novalidate>
+
+        <!-- PASO 1 -->
+        <fieldset>
+          <legend>1 · Origen del texto</legend>
+          <div class="choices mb-3">
+            <label class="choice"><input type="radio" name="origen" value="archivo" checked><span>Subir un archivo</span></label>
+            <label class="choice"><input type="radio" name="origen" value="texto"><span>Pegar texto</span></label>
+          </div>
+
+          <div id="bloque-archivo" class="field">
+            <div class="dropzone" id="zona-archivo">
+              <label for="archivo" class="label">Archivo (TXT, CSV, JSON, XML, HTML, MD · hasta 5 MB)</label>
+              <input type="file" id="archivo" name="archivo" accept=".txt,.csv,.tsv,.json,.xml,.html,.htm,.md,.log" aria-describedby="ayuda-archivo error-origen">
+              <p class="hint" id="ayuda-archivo">También podés arrastrar el archivo hasta este recuadro. ¿Querés probar? Descargá un <a href="../muestras/ejemplo.txt" download>ejemplo de prueba</a>.</p>
+            </div>
+          </div>
+
+          <div id="bloque-texto" hidden>
+            <div class="field">
+              <label for="texto">Texto a anonimizar</label>
+              <textarea id="texto" name="texto" spellcheck="false" aria-describedby="error-origen" placeholder="Pegá acá el contenido del documento…"></textarea>
+            </div>
+            <div class="field">
+              <label for="formato">Formato del texto pegado</label>
+              <select id="formato" name="formato">
+                <option value="texto">Texto plano</option>
+                <option value="csv">CSV (con encabezados)</option>
+                <option value="json">JSON</option>
+                <option value="xml">XML</option>
+              </select>
+            </div>
+          </div>
+          <p class="error" id="error-origen" role="alert"></p>
+        </fieldset>
+
+        <!-- PASO 2 -->
+        <fieldset>
+          <legend>2 · Qué datos ocultar</legend>
+          <div class="choices">
+            <label class="choice">
+              <input type="checkbox" name="tipos" value="nombre" checked>
+              <span>Nombres y apellidos<small>Con título, etiqueta o nombre de pila conocido</small></span>
+            </label>
+            <label class="choice">
+              <input type="checkbox" name="tipos" value="dni" checked>
+              <span>DNI / documento<small>12.345.678 · DNI 12345678</small></span>
+            </label>
+            <label class="choice">
+              <input type="checkbox" name="tipos" value="cuit" checked>
+              <span>CUIT / CUIL<small>20-12345678-9</small></span>
+            </label>
+            <label class="choice">
+              <input type="checkbox" name="tipos" value="email" checked>
+              <span>Correos electrónicos<small>nombre@dominio.com</small></span>
+            </label>
+            <label class="choice">
+              <input type="checkbox" name="tipos" value="telefono" checked>
+              <span>Teléfonos<small>+54 9 11 5555-1234 · 4555-1234</small></span>
+            </label>
+            <label class="choice">
+              <input type="checkbox" name="tipos" value="domicilio" checked>
+              <span>Domicilios<small>Av. Colón 1234, piso 5</small></span>
+            </label>
+            <label class="choice">
+              <input type="checkbox" name="tipos" value="cuenta" checked>
+              <span>Cuentas bancarias<small>CBU, CVU, IBAN, alias</small></span>
+            </label>
+            <label class="choice">
+              <input type="checkbox" name="tipos" value="tarjeta" checked>
+              <span>Tarjetas<small>Validadas con algoritmo de Luhn</small></span>
+            </label>
+            <label class="choice">
+              <input type="checkbox" name="tipos" value="patente" checked>
+              <span>Patentes<small>ABC123 · AB123CD</small></span>
+            </label>
+            <label class="choice">
+              <input type="checkbox" name="tipos" value="fecha">
+              <span>Fechas<small>04/07/1985 · 15 de marzo de 2026</small></span>
+            </label>
+          </div>
+          <p class="error" id="error-tipos" role="alert"></p>
+
+          <div class="field field--flush mt-3">
+            <label for="extras">Palabras adicionales (opcional)</label>
+            <input type="text" id="extras" name="extras" placeholder="Ej.: Estudio Gómez &amp; Asociados, Proyecto Aurora" aria-describedby="ayuda-extras">
+            <p class="hint" id="ayuda-extras">Separalas con comas. Se ocultan siempre, sin importar mayúsculas.</p>
+          </div>
+        </fieldset>
+
+        <!-- PASO 3 -->
+        <fieldset>
+          <legend>3 · Cómo ocultarlos</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="modo" value="etiquetas" checked><span>Etiquetas<small>[NOMBRE_1], [DNI_1]… el mismo dato = la misma etiqueta</small></span></label>
+            <label class="choice"><input type="radio" name="modo" value="bloques"><span>Bloques negros<small>████████ (no revela ni el largo)</small></span></label>
+            <label class="choice"><input type="radio" name="modo" value="enmascarar"><span>Enmascarar<small>**** **** **** 1111 (deja los últimos 4)</small></span></label>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button class="btn btn--primary" type="submit">Anonimizar documento</button>
+          <button class="btn btn--ghost" type="reset" id="btn-limpiar">Limpiar todo</button>
+        </div>
+      </form>
+
+      <p id="estado" class="hint mt-2" role="status" aria-live="polite"></p>
+
+      <!-- RESULTADO -->
+      <section id="resultado" aria-labelledby="titulo-resultado" class="mt-4" hidden>
+        <h2 id="titulo-resultado">Resultado</h2>
+        <div class="alert mb-3">
+          <p><strong>Revisá siempre el resultado.</strong> La detección automática puede dejar pasar algún dato o ocultar de más. Antes de compartir el documento, leelo completo.</p>
+        </div>
+        <ul class="summary" id="resumen" aria-label="Datos encontrados"></ul>
+        <div class="compare">
+          <div class="viewer-wrap">
+            <h3 id="titulo-original">Original (datos resaltados)</h3>
+            <div class="viewer" id="visor-original" tabindex="0" role="region" aria-labelledby="titulo-original"></div>
+          </div>
+          <div class="viewer-wrap">
+            <h3 id="titulo-anonimizado">Anonimizado</h3>
+            <div class="viewer" id="visor-anonimizado" tabindex="0" role="region" aria-labelledby="titulo-anonimizado"></div>
+          </div>
+        </div>
+        <p class="hint" id="nota-vista" hidden>Vista previa limitada a los primeros 100.000 caracteres. El archivo descargado contiene el documento completo.</p>
+        <div class="actions mt-3">
+          <button class="btn btn--primary" type="button" id="btn-descargar">Descargar anonimizado</button>
+          <button class="btn btn--ghost" type="button" id="btn-copiar">Copiar texto</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <a class="brand" href="../index.html">
+        <img src="../img/logo.svg" alt="Logotipo de AnonimaX" width="32" height="32">
+        <span>Anonima<span>X</span></span>
+      </a>
+      <nav aria-label="Pie de página">
+        <ul>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="herramientas.html">Herramientas</a></li>
+          <li><a href="anonimizar.html">Anonimizar</a></li>
+          <li><a href="privacidad.html">Privacidad</a></li>
+        </ul>
+      </nav>
+      <small>© <span id="anio">2026</span> ANONIMAX · PROYECTO ACADÉMICO</small>
+    </div>
+  </footer>
+
+  <script src="../js/main.js" defer></script>
+  <script src="../js/anonymizer.js" defer></script>
+  <script src="../js/anonimizar-ui.js" defer></script>
+</body>
+</html>

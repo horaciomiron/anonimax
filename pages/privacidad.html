@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacidad y límites — AnonimaX</title>
+  <meta name="description" content="Cómo trata AnonimaX tus documentos y qué límites tiene la detección automática.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="../img/logo.svg" type="image/svg+xml">
+
+  <!-- Tipografías del prototipo (Google Fonts). Si no cargan, el CSS tiene alternativas. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&amp;family=DM+Serif+Display:ital@0;1&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap">
+
+  <link rel="stylesheet" href="../css/styles.css">
+  <!-- theme.js va en el <head> y SIN defer: aplica el tema antes de pintar para evitar un "parpadeo" -->
+  <script src="../js/theme.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="../index.html">
+        <img src="../img/logo.svg" alt="Logotipo de AnonimaX" width="32" height="32">
+        <span>Anonima<span>X</span></span>
+      </a>
+
+      <button class="nav-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal">
+        <span class="visually-hidden">Abrir menú</span>
+        <span class="nav-toggle__icon" aria-hidden="true"></span>
+      </button>
+
+      <nav class="nav" id="menu-principal" aria-label="Principal">
+        <ul class="nav__list">
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="herramientas.html">Herramientas</a></li>
+          <li><a href="anonimizar.html">Anonimizar</a></li>
+          <li><a href="privacidad.html" aria-current="page">Privacidad</a></li>
+        </ul>
+        <div class="nav__actions">
+          <button class="btn btn--ghost btn--sm" id="theme-toggle" type="button" aria-label="Cambiar a modo claro">Modo claro</button>
+          <a class="btn btn--primary btn--sm" href="anonimizar.html">Anonimizar ahora</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <section class="container page-head" aria-labelledby="titulo-priv">
+      <p class="eyebrow">Privacidad</p>
+      <h1 id="titulo-priv">Tus documentos <em>no salen de tu equipo</em></h1>
+    </section>
+
+    <article class="container prose pb-5">
+      <h2>Qué hace AnonimaX con tus archivos</h2>
+      <p>Todo el procesamiento ocurre en tu navegador con JavaScript. Los archivos <strong>no se suben</strong> a ningún servidor, no se guardan y no se envían a terceros. Al cerrar o recargar la página, el contenido desaparece.</p>
+      <ul>
+        <li>No usamos cookies de seguimiento ni herramientas de analítica.</li>
+        <li>El único dato que guardamos en tu navegador es la preferencia de tema (claro u oscuro).</li>
+        <li>El formulario de la portada es una demostración: no envía nada.</li>
+      </ul>
+
+      <h2>Límites de la detección automática</h2>
+      <p>AnonimaX usa reglas y expresiones regulares, no inteligencia artificial. Por eso:</p>
+      <ul>
+        <li>Puede <strong>no detectar</strong> un nombre sin título, etiqueta ni nombre de pila conocido, o un número de documento sin formato ni etiqueta.</li>
+        <li>Puede <strong>ocultar de más</strong> una palabra que se parece a un dato personal.</li>
+        <li>Hoy no lee PDF ni DOCX, ni texto dentro de imágenes (OCR).</li>
+      </ul>
+      <p><strong>Revisá siempre el resultado antes de compartirlo.</strong> La anonimización es una ayuda, no una garantía legal.</p>
+
+      <h2>Marco legal de referencia</h2>
+      <p>En Argentina los datos personales están protegidos por la Ley 25.326. Esta herramienta es un proyecto académico y no reemplaza el asesoramiento profesional.</p>
+
+      <p class="mt-4"><a class="btn btn--primary" href="anonimizar.html">Probar el anonimizador →</a></p>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <a class="brand" href="../index.html">
+        <img src="../img/logo.svg" alt="Logotipo de AnonimaX" width="32" height="32">
+        <span>Anonima<span>X</span></span>
+      </a>
+      <nav aria-label="Pie de página">
+        <ul>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="herramientas.html">Herramientas</a></li>
+          <li><a href="anonimizar.html">Anonimizar</a></li>
+          <li><a href="privacidad.html">Privacidad</a></li>
+        </ul>
+      </nav>
+      <small>© <span id="anio">2026</span> ANONIMAX · PROYECTO ACADÉMICO</small>
+    </div>
+  </footer>
+
+  <script src="../js/main.js" defer></script>
+</body>
+</html>
