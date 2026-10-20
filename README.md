@@ -76,3 +76,4 @@ _Lighthouse en Chrome → DevTools → Lighthouse. Volvé a medir vos y anotá t
 - No lee PDF ni DOCX (requeriría librerías externas, que la consigna no permite).
 - La detección usa reglas, no IA: puede omitir o ocultar de más. **Revisar siempre el resultado.**
 - Un DNI sin puntos y sin la palabra «DNI» delante no se detecta fuera de CSV/JSON/XML.
+- 
