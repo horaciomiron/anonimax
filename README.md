@@ -10,9 +10,9 @@ Aplicación web que **oculta datos personales** (nombres, DNI, CUIT/CUIL, domici
 
 ## Enlaces
 
-- 🌐 Sitio publicado: _https://TU-USUARIO.github.io/anonimax/_
-- 🎨 Prototipo de Figma: _pegar acá el enlace de tu Figma_
-- 📦 Repositorio: _https://github.com/TU-USUARIO/anonimax_
+- 🌐 Sitio publicado: https://horaciomiron.github.io/anonimax/
+- 🎨 Prototipo de Figma: https://www.figma.com/make/Wgc7l3TwJf04ijG8DCSI1z/AI-Legal-Document-Analyzer?t=T0AWejI6W2Yxdhb5-1
+- 📦 Repositorio: https://github.com/horaciomiron/anonimax
 
 ## Pantallas
 
