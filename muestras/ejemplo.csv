@@ -1,4 +1,4 @@
 id,nombre,apellido,dni,email,telefono,domicilio,cbu,observaciones
-1,Luc√≠a,Fern√°ndez,30123456,lucia.fernandez@ejemplo.com,11 4444-5555,"Av. Rivadavia 1500, CABA",0110012340000012345678,Cliente desde 2022
-2,Mart√≠n,Rodr√≠guez,28987654,martin.rodriguez@ejemplo.com,0351 15 444-8888,Belgrano 250,0720000088000098765432,Pidi√≥ factura A
-3,Carolina,D√≠az,35111222,caro.diaz@ejemplo.com,+54 9 341 555-7777,"Pasaje Los √Ålamos 77, piso 2",0170099520000055555555,Sin observaciones
+"1,LucÌa,Fern·ndez,30123456,lucia.fernandez@ejemplo.com,11 4444-5555,""Av. Rivadavia 1500, CABA"",0110012340000012345678,Cliente desde 2022"
+2,MartÌn,RodrÌguez,28987654,martin.rodriguez@ejemplo.com,0351 15 444-8888,Belgrano 250,0720000088000098765432,Pidi√≥ factura A
+"3,Carolina,DÌaz,35111222,caro.diaz@ejemplo.com,+54 9 341 555-7777,""Pasaje Los √Ålamos 77, piso 2"",0170099520000055555555,Sin observaciones"

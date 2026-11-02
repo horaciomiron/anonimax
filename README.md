@@ -6,7 +6,7 @@ Aplicación web que **oculta datos personales** (nombres, DNI, CUIT/CUIL, domici
 
 ## Integrantes
 
-- _Completar: Nombre y Apellido_
+- Horacio Miron - Joshua Narvaez - Valentín Ortega
 
 ## Enlaces
 
