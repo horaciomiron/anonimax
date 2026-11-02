@@ -20,10 +20,10 @@
       descripcion: 'Anonimiza el contenido de etiquetas como <dni> o <email>.' },
     { id: 'html', titulo: 'Página HTML', ext: '.HTML', categoria: 'web', disponible: true,
       descripcion: 'Páginas guardadas o plantillas de correo con datos personales dentro.' },
-    { id: 'pdf', titulo: 'Documento PDF', ext: '.PDF', categoria: 'proximamente', disponible: false,
-      descripcion: 'Requiere leer el interior del PDF. Mientras tanto, copiá el texto y usá «Texto pegado».' },
-    { id: 'docx', titulo: 'Documento Word', ext: '.DOCX', categoria: 'proximamente', disponible: false,
-      descripcion: 'Requiere abrir el archivo .docx (un ZIP con XML). Planificado para una próxima versión.' },
+    { id: 'docx', titulo: 'Documento Word', ext: '.DOCX', categoria: 'documentos', disponible: true,
+      descripcion: 'Conserva el formato. Revisa tablas, encabezados, pies, comentarios y cambios con control de cambios.' },
+    { id: 'pdf', titulo: 'Documento PDF', ext: '.PDF', categoria: 'documentos', disponible: true,
+      descripcion: 'Tapa los datos con negro y elimina el texto original (el PDF nuevo es una imagen). No lee PDF escaneados.' },
   ];
 
   const lista = document.querySelector('#lista-herramientas');

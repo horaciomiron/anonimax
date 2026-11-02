@@ -93,7 +93,6 @@ prueba('ejemplo.csv y ejemplo.json', () => {
   ['Benítez', '31456789', 'Mitre', 'AC456DE', 'Acosta', '10/11/2026'].forEach((s) => assert.equal(js.includes(s), false, `JSON: quedó "${s}"`));
 });
 
-console.log(`\n${pasaron} pruebas pasaron${process.exitCode ? ' — HAY FALLAS' : ' ✔'}`);
 
 console.log('Regresiones');
 prueba('un teléfono +54 de 13 dígitos no se confunde con tarjeta', () => {
@@ -102,3 +101,50 @@ prueba('un teléfono +54 de 13 dígitos no se confunde con tarjeta', () => {
   assert.equal(r.resumen.telefono, 1);
 });
 prueba('tarjeta Amex 4-6-5 válida', () => assert.equal(anon('3782 822463 10005', { tipos: ['tarjeta'] }).total, 1));
+
+prueba('un nombre no se come la palabra del renglón siguiente', () => {
+  const r = anon('Firmas: Juan Carlos Pérez\nAntes decía otra cosa', { tipos: ['nombre'] });
+  assert.equal(r.resultado, 'Firmas: [NOMBRE_1]\nAntes decía otra cosa');
+});
+
+console.log('Estado compartido (Word/PDF)');
+prueba('la numeración continúa entre llamadas con el mismo estado', () => {
+  const estado = Anonimax.nuevoEstado();
+  const a = Anonimax.anonimizar('Escribir a ana@x.com', { tipos: ['email'] }, estado);
+  const b = Anonimax.anonimizar('Y a luis@x.com y de nuevo a ana@x.com', { tipos: ['email'] }, estado);
+  assert.equal(a.resultado, 'Escribir a [EMAIL_1]');
+  assert.equal(b.resultado, 'Y a [EMAIL_2] y de nuevo a [EMAIL_1]');
+  assert.equal(estado.total, 3);
+  assert.equal(estado.resumen.email, 3);
+});
+
+
+console.log('DNI sueltos');
+prueba('un DNI de 8 dígitos sin etiqueta se oculta', () => assert.equal(anon('Lucía 30123456 ok', { tipos: ['dni'] }).resultado, 'Lucía [DNI_1] ok'));
+prueba('pero no un importe ni un número más largo', () => {
+  assert.equal(anon('Total $ 30123456', { tipos: ['dni'] }).total, 0);
+  assert.equal(anon('Total 30123456,50', { tipos: ['dni'] }).total, 0);
+  assert.equal(anon('Cuenta 301234567890', { tipos: ['dni'] }).total, 0);
+});
+
+
+console.log('Correos partidos');
+prueba('un correo partido por salto de línea se oculta entero', () => {
+  const r = anon('Email\nlucia.fernandez@ej\nmplo.com\nTel', { tipos: ['email'] });
+  assert.equal(r.total, 1);
+  assert.equal(r.hallazgos[0].valor, 'lucia.fernandez@ej\nmplo.com');
+});
+prueba('dos correos seguidos no se mezclan', () => {
+  const r = anon('a@x.com\nb@y.com', { tipos: ['email'] });
+  assert.equal(r.resultado, '[EMAIL_1]\n[EMAIL_2]');
+});
+prueba('un correo completo seguido de una palabra no se la come', () => {
+  assert.equal(anon('ana@x.com\nsitio.org', { tipos: ['email'] }).resultado, '[EMAIL_1]\nsitio.org');
+});
+
+prueba('un correo partido dentro del usuario también se oculta (hay un punto en el 1.er renglón)', () => {
+  const r = anon('martin.rodri\nguez@ejemplo.com', { tipos: ['email'] });
+  assert.equal(r.resultado, '[EMAIL_1]');
+});
+
+console.log(`\n${pasaron} pruebas pasaron${process.exitCode ? ' — HAY FALLAS' : ' ✔'}`);

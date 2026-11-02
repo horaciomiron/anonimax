@@ -53,7 +53,7 @@ const Anonimax = (() => {
   const NEXO = '(?:de|del|la|las|los|y|van|von|da|di|dos)';
   // Nombre completo: hasta 5 palabras, o formato "APELLIDO, Nombre"
   const NOMBRE_COMPLETO =
-    `${PAL}(?:(?:,\\s*\\p{Lu}[\\p{Ll}'’-]+|\\s+(?:${NEXO}\\s+)*${PAL})){0,4}`;
+    `${PAL}(?:(?:,[ \\t]*\\p{Lu}[\\p{Ll}'’-]+|[ \\t]+(?:${NEXO}[ \\t]+)*${PAL})){0,4}`;
 
   // Convierte "dni" en "[dD][nN][iI]" para ignorar mayúsculas sin usar el
   // flag "i" (que haría que \p{Lu} también acepte minúsculas).
@@ -161,7 +161,7 @@ const Anonimax = (() => {
        validar    → (valor, texto, inicio, fin) => true/false  (opcional)
        ajustar    → (valor) => valor recortado                  (opcional)
   ------------------------------------------------------------------- */
-  const tituloRE = `(?:(?:${palabras(TITULOS)})\\.?\\s+)+`;
+  const tituloRE = `(?:(?:${palabras(TITULOS)})\\.?[ \\t]+)+`;
   const etiquetaRE = `(?:${palabras(ETIQUETAS_NOMBRE)})`;
   const viaRE = 'calle|av|avda|avenida|pasaje|pje|diagonal|diag|bv|bvd|bulevar|boulevard|ruta|camino|autopista';
   const unidadRE = '(?:piso|p\\.|dpto|depto|dto|of|oficina|uf)\\.?\\s*[\\p{L}\\d°º]+';
@@ -207,6 +207,12 @@ const Anonimax = (() => {
       re: /(?<![\d.])\d{2}\.\d{3}\.\d{3}(?!\d)/gd,
       validar: (v, t, i, f) => !pareceDinero(t, i, f) },
 
+    { tipo: 'dni', prioridad: 3,                                                            // 30123456 suelto (8 dígitos)
+      // Ocultar de más es mejor que dejar pasar un DNI: en un PDF o un Word no hay columnas
+      // con nombre que nos digan «esto es un DNI». Se descartan importes y números pegados a otros.
+      re: /(?<![\d.,/-])[1-9]\d{7}(?![\d.,/-]|\d)/gd,
+      validar: (v, t, i, f) => !pareceDinero(t, i, f) },
+
     // ---- Domicilios
     { tipo: 'domicilio', prioridad: 4,                                                      // Av. Corrientes 1234, piso 5 dpto B
       re: new RegExp(
@@ -237,11 +243,11 @@ const Anonimax = (() => {
       re: new RegExp(`${ANTES}${etiquetaRE}["']?\\s*:\\s*["']?(${NOMBRE_COMPLETO})`, 'gud') },
     // (c) "APELLIDO, Nombre" si el nombre de pila está en la lista
     { tipo: 'nombre', prioridad: 5,
-      re: new RegExp(`${ANTES}\\p{Lu}{2,}(?: \\p{Lu}{2,})?,\\s*\\p{Lu}[\\p{Ll}'’-]+(?:\\s+\\p{Lu}[\\p{Ll}'’-]+)?${DESPUES}`, 'gud'),
+      re: new RegExp(`${ANTES}\\p{Lu}{2,}(?: \\p{Lu}{2,})?,[ \\t]*\\p{Lu}[\\p{Ll}'’-]+(?:[ \\t]+\\p{Lu}[\\p{Ll}'’-]+)?${DESPUES}`, 'gud'),
       validar: (v) => SET_NOMBRES.has(sinTildes(v.split(',')[1].trim().split(/\s+/)[0]).toLowerCase()) },
     // (d) Nombre de pila conocido seguido de 1 a 3 palabras capitalizadas
     { tipo: 'nombre', prioridad: 5, ajustar: recortarNombre,
-      re: new RegExp(`${ANTES}(?:${VARIANTES_NOMBRES})(?:\\s+(?:${NEXO}\\s+)*${PAL}){1,3}${DESPUES}`, 'gud'),
+      re: new RegExp(`${ANTES}(?:${VARIANTES_NOMBRES})(?:[ \\t]+(?:${NEXO}[ \\t]+)*${PAL}){1,3}${DESPUES}`, 'gud'),
       validar: (v) => !TOPONIMOS.test(v) },
   ];
 
@@ -346,8 +352,12 @@ const Anonimax = (() => {
   ------------------------------------------------------------------- */
   const escaparRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-  function detectar(texto, tiposActivos, extras, formato) {
+  function detectar(texto, tiposActivos, extras, formato, forzados = []) {
     const candidatos = [];
+
+    // 6.0 Rangos que el llamador ya sabe que son datos (ej.: celdas de una tabla de Word
+    //     cuya columna se llama «DNI»). Tienen prioridad máxima.
+    forzados.forEach((f) => { if (tiposActivos.has(f.tipo)) candidatos.push({ ...f, prioridad: 0 }); });
 
     // 6.1 Por estructura (solo CSV/JSON/XML)
     const porEstructura =
@@ -383,7 +393,52 @@ const Anonimax = (() => {
       }
     });
 
+    // 6.4 Correos partidos por un salto de línea (muy común en tablas angostas de PDF)
+    if (tiposActivos.has('email')) candidatos.push(...detectarEmailsPartidos(texto, candidatos));
+
     return candidatos;
+  }
+
+  /* Un correo como «lucia.fernandez@ej⏎mplo.com» no lo encuentra la regex normal.
+     Probamos sobre una copia del texto SIN saltos de línea y traducimos las posiciones.
+     Solo aceptamos los que realmente estaban partidos y que la regex normal no vio entero. */
+  const RE_EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
+  const RE_EMAIL_COMPLETO = new RegExp(`^${RE_EMAIL.source}$`);
+  function detectarEmailsPartidos(texto, candidatos) {
+    if (!texto.includes('\n') || !texto.includes('@')) return [];
+    const mapa = [];                       // mapa[i] = posición en el texto original del carácter i del texto «plano»
+    let plano = '';
+    for (let i = 0; i < texto.length; i++) {
+      if (texto[i] !== '\n') { plano += texto[i]; mapa.push(i); }
+    }
+    const encontrados = [];
+    for (const m of plano.matchAll(RE_EMAIL)) {
+      let inicio = mapa[m.index];
+      let fin = mapa[m.index + m[0].length - 1] + 1;
+      // Si lo que está ANTES del último salto ya es un correo completo, lo que sigue es otro renglón
+      // («…@ejemplo.com⏎Tel» no debe llevarse la palabra «Tel»).
+      for (;;) {
+        const salto = texto.lastIndexOf('\n', fin - 1);
+        if (salto <= inicio) break;
+        const hastaAca = texto.slice(inicio, salto).replace(/\n/g, '');
+        if (!RE_EMAIL_COMPLETO.test(hastaAca)) break;
+        fin = salto;
+      }
+      // Si el primer renglón es una palabra suelta («Email», «Contacto») y no parte del usuario
+      // del correo, no lo incluimos. Parece parte del usuario si trae punto, guion, número, etc.
+      for (;;) {
+        const salto = texto.indexOf('\n', inicio);
+        if (salto === -1 || salto >= fin) break;
+        const arroba = texto.indexOf('@', inicio);
+        if (arroba !== -1 && arroba < salto) break;                                  // el @ ya está en este renglón
+        if (/[._%+\-\d]/.test(texto.slice(inicio, salto))) break;                    // parece parte del usuario
+        inicio = salto + 1;
+      }
+      if (!texto.slice(inicio, fin).includes('\n')) continue;                       // no estaba partido
+      if (candidatos.some((c) => c.tipo === 'email' && c.inicio === inicio)) continue; // ya lo vio la regex normal
+      encontrados.push({ tipo: 'email', inicio, fin, prioridad: 1 });
+    }
+    return encontrados;
   }
 
   /* Elige qué candidatos se quedan cuando se superponen:
@@ -424,19 +479,25 @@ const Anonimax = (() => {
     return valor.replace(/[\p{L}\d]/gu, (c) => (vistos++ < ocultar ? '*' : c));
   }
 
-  function anonimizar(texto, opciones = {}) {
+  /* Estado compartido: guarda qué número recibió cada valor.
+     Para un documento de varias partes (párrafos de un Word, páginas de un PDF)
+     se crea UNA vez y se pasa a cada llamada, así «Juan Pérez» es siempre
+     [NOMBRE_1] en todo el documento. */
+  function nuevoEstado() {
+    return { numeros: new Map(), contadores: {}, resumen: {}, total: 0 };
+  }
+
+  function anonimizar(texto, opciones = {}, estado = nuevoEstado()) {
     const tipos = new Set(opciones.tipos || Object.keys(TIPOS));
     const modo = opciones.modo || 'etiquetas';
     const extras = (opciones.extras || []).map((s) => s.trim()).filter(Boolean);
     const formato = opciones.formato || 'texto';
 
     const aceptados = resolverSuperposiciones(
-      detectar(texto, tipos, extras, formato), texto.length
+      detectar(texto, tipos, extras, formato, opciones.forzados || []), texto.length
     );
 
-    // Numeración consistente: el mismo valor recibe siempre la misma etiqueta
-    const numeros = new Map();
-    const contadores = {};
+    const { numeros, contadores } = estado;
     const resumen = {};
     let resultado = '';
     let cursor = 0;
@@ -456,6 +517,8 @@ const Anonimax = (() => {
       // Número JSON sin comillas: lo envolvemos para que el JSON siga siendo válido
       if (h.envolver) reemplazo = h.envolver + reemplazo + h.envolver;
       resumen[h.tipo] = (resumen[h.tipo] || 0) + 1;
+      estado.resumen[h.tipo] = (estado.resumen[h.tipo] || 0) + 1;
+      estado.total++;
 
       resultado += texto.slice(cursor, h.inicio) + reemplazo;
       cursor = h.fin;
@@ -482,7 +545,7 @@ const Anonimax = (() => {
     return segmentos;
   }
 
-  return { TIPOS, anonimizar, segmentar, luhn, tipoPorClave };
+  return { TIPOS, anonimizar, nuevoEstado, segmentar, luhn, tipoPorClave };
 })();
 
 // Si se ejecuta en Node (tests) exportamos el objeto; en el navegador no pasa nada.

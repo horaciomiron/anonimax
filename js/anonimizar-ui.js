@@ -1,15 +1,26 @@
-/* anonimizar-ui.js — conecta el formulario de anonimizar.html con el motor
-   (anonymizer.js). Este archivo SÍ toca el DOM; el motor no.
+/* anonimizar-ui.js — conecta el formulario de anonimizar.html con los motores
+     · anonymizer.js   → texto (TXT, CSV, JSON, XML, HTML, MD)
+     · docx-handler.js → Word
+     · pdf-handler.js  → PDF
+   Este archivo SÍ toca el DOM; los motores no (salvo el PDF, que usa un <canvas>).
 
-   Flujo: submit → validar → leer texto (archivo o textarea) → Anonimax.anonimizar()
-          → mostrar resultado → permitir copiar / descargar. */
+   Flujo: submit → validar → leer archivo → motor según el formato → mostrar
+          resultado → permitir copiar / descargar.
+
+   Las librerías pesadas (JSZip, pdf.js, pdf-lib) se cargan SOLO cuando el
+   usuario sube un .docx o un .pdf («carga diferida»): el resto de las
+   páginas no pierde velocidad por culpa de ellas. */
 (() => {
   'use strict';
 
-  const MAX_BYTES = 5 * 1024 * 1024;        // 5 MB
+  const MAX_BYTES = 15 * 1024 * 1024;       // 15 MB
   const LIMITE_VISTA = 100000;              // caracteres que mostramos en pantalla
-  const EXTENSIONES = ['txt', 'csv', 'tsv', 'json', 'xml', 'html', 'htm', 'md', 'log'];
+  const EXTENSIONES = ['docx', 'pdf', 'txt', 'csv', 'tsv', 'json', 'xml', 'html', 'htm', 'md', 'log'];
   const FORMATO_POR_EXT = { csv: 'csv', tsv: 'csv', json: 'json', xml: 'xml' };
+  const TIPO_MIME = {
+    json: 'application/json', xml: 'application/xml', csv: 'text/csv',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', pdf: 'application/pdf',
+  };
 
   const $ = (selector) => document.querySelector(selector);
   const form = $('#form-anonimizar');
@@ -21,8 +32,34 @@
   const zona = $('#zona-archivo');
   const estado = $('#estado');
   const seccionResultado = $('#resultado');
+  const botonEnviar = form.querySelector('button[type="submit"]');
 
-  let ultimo = null;   // guarda {texto, nombre, extension} del último resultado para descargar/copiar
+  // Lo último que se procesó, para poder copiar/descargar:
+  // { blob?, texto, textoPlano, nombre, extension }
+  let ultimo = null;
+
+  /* ---------- Carga diferida de librerías ---------- */
+  const cargados = new Map();
+  function cargarScript(ruta) {
+    if (!cargados.has(ruta)) {
+      cargados.set(ruta, new Promise((ok, mal) => {
+        const s = document.createElement('script');
+        s.src = ruta;
+        s.onload = ok;
+        s.onerror = () => { cargados.delete(ruta); mal(new Error(`No se pudo cargar ${ruta}`)); };
+        document.head.append(s);
+      }));
+    }
+    return cargados.get(ruta);
+  }
+  async function prepararLibrerias(extension) {
+    if (extension === 'docx') {
+      await cargarScript('../vendor/jszip.min.js');
+    } else if (extension === 'pdf') {
+      await Promise.all([cargarScript('../vendor/pdf.min.js'), cargarScript('../vendor/pdf-lib.min.js')]);
+      PdfAnonimizador.configurar({ workerSrc: '../vendor/pdf.worker.min.js' });
+    }
+  }
 
   /* ---------- Mostrar/ocultar según el origen elegido ---------- */
   function actualizarOrigen() {
@@ -80,12 +117,12 @@
         primerError = inputArchivo;
       } else if (!EXTENSIONES.includes(extensionDe(archivo.name))) {
         const ext = extensionDe(archivo.name);
-        const extra = ['pdf', 'docx', 'doc'].includes(ext)
-          ? ' Todavía no leemos PDF ni Word: abrí el documento, copiá el texto y usá «Pegar texto».' : '';
+        const extra = ['doc', 'rtf', 'odt'].includes(ext)
+          ? ' Guardalo como .docx desde Word («Guardar como») y volvé a subirlo.' : '';
         mostrarError('error-origen', `El formato .${ext || '(sin extensión)'} no está soportado.${extra}`, inputArchivo);
         primerError = inputArchivo;
       } else if (archivo.size > MAX_BYTES) {
-        mostrarError('error-origen', 'El archivo supera los 5 MB.', inputArchivo);
+        mostrarError('error-origen', 'El archivo supera los 15 MB.', inputArchivo);
         primerError = inputArchivo;
       }
     } else if (!areaTexto.value.trim()) {
@@ -105,22 +142,37 @@
   }
 
   /* ---------- Resultado en pantalla (sin innerHTML) ---------- */
-  function pintar(contenedor, segmentos) {
+  // «partes» = [{ etiqueta?, texto, resultado, hallazgos }]: un párrafo de Word,
+  // una página de PDF, o el texto completo.
+  function pintarOriginal(contenedor, partes) {
     const fragmento = document.createDocumentFragment();
-    segmentos.forEach((s) => {
-      if (s.tipo) {
-        const marca = document.createElement('mark');
-        marca.textContent = s.texto;
-        marca.title = Anonimax.TIPOS[s.tipo].etiqueta;
-        fragmento.append(marca);
-      } else {
-        fragmento.append(document.createTextNode(s.texto));
-      }
-    });
+    let usados = 0;
+    let recortado = false;
+    for (const parte of partes) {
+      if (usados > LIMITE_VISTA) { recortado = true; break; }
+      if (parte.etiqueta) fragmento.append(document.createTextNode(`— ${parte.etiqueta} —\n`));
+      Anonimax.segmentar(parte.texto, parte.hallazgos).forEach((s) => {
+        if (s.tipo) {
+          const marca = document.createElement('mark');
+          marca.textContent = s.texto;
+          marca.title = Anonimax.TIPOS[s.tipo].etiqueta;
+          fragmento.append(marca);
+        } else {
+          fragmento.append(document.createTextNode(s.texto));
+        }
+      });
+      fragmento.append(document.createTextNode('\n'));
+      usados += parte.texto.length;
+    }
     contenedor.replaceChildren(fragmento);
+    return recortado;
   }
 
-  function mostrarResumen(resumen, total) {
+  function textoAnonimizado(partes) {
+    return partes.map((p) => (p.etiqueta ? `— ${p.etiqueta} —\n` : '') + p.resultado).join('\n');
+  }
+
+  function mostrarResumen(resumen) {
     const ul = $('#resumen');
     const items = Object.keys(resumen).map((tipo) => {
       const li = document.createElement('li');
@@ -135,7 +187,62 @@
       items.push(li);
     }
     ul.replaceChildren(...items);
-    return total;
+  }
+
+  function mostrarAvisos(avisos) {
+    const caja = $('#avisos');
+    caja.replaceChildren(...avisos.map((a) => { const p = document.createElement('p'); p.textContent = a; return p; }));
+    caja.hidden = !avisos.length;
+  }
+
+  /* ---------- Procesar según el tipo de archivo ---------- */
+  async function procesar(opciones) {
+    if (form.elements.origen.value === 'texto') {
+      const formato = selectFormato.value;
+      const texto = areaTexto.value;
+      const r = Anonimax.anonimizar(texto, { ...opciones, formato });
+      return {
+        partes: [{ texto, resultado: r.resultado, hallazgos: r.hallazgos }],
+        resumen: r.resumen, avisos: [],
+        salida: { texto: r.resultado, nombre: 'texto', extension: formato === 'texto' ? 'txt' : formato },
+      };
+    }
+
+    const archivo = inputArchivo.files[0];
+    const extension = extensionDe(archivo.name);
+    const nombre = archivo.name.replace(/\.[^.]+$/, '');
+
+    if (extension === 'docx' || extension === 'pdf') {
+      estado.textContent = 'Cargando herramientas…';
+      await prepararLibrerias(extension);
+      const buffer = await archivo.arrayBuffer();
+      let r;
+      if (extension === 'docx') {
+        r = await DocxAnonimizador.procesar(buffer, opciones);
+      } else {
+        r = await PdfAnonimizador.procesar(buffer, opciones, (n, total) => { estado.textContent = `Procesando página ${n} de ${total}…`; });
+        if (r.escaneado) {
+          const e = new Error('PDF_ESCANEADO');
+          e.esEscaneado = true;
+          throw e;
+        }
+      }
+      const partes = r.paginas || r.parrafos;
+      return {
+        partes, resumen: r.estado.resumen, avisos: r.avisos,
+        salida: { blob: r.blob, nombre, extension, textoPlano: textoAnonimizado(partes) },
+      };
+    }
+
+    // Archivos de texto
+    const texto = await archivo.text();
+    const formato = FORMATO_POR_EXT[extension] || 'texto';
+    const r = Anonimax.anonimizar(texto, { ...opciones, formato });
+    return {
+      partes: [{ texto, resultado: r.resultado, hallazgos: r.hallazgos }],
+      resumen: r.resumen, avisos: [],
+      salida: { texto: r.resultado, nombre, extension },
+    };
   }
 
   /* ---------- Envío del formulario ---------- */
@@ -143,44 +250,47 @@
     evento.preventDefault();
     if (!validar()) return;
 
+    botonEnviar.disabled = true;
     estado.textContent = 'Procesando…';
-    let texto, nombre, extension, formato;
+    seccionResultado.hidden = true;
     try {
-      if (form.elements.origen.value === 'archivo') {
-        const archivo = inputArchivo.files[0];
-        texto = await archivo.text();                       // lee el archivo en el navegador
-        extension = extensionDe(archivo.name);
-        nombre = archivo.name.replace(/\.[^.]+$/, '');
-        formato = FORMATO_POR_EXT[extension] || 'texto';
-      } else {
-        texto = areaTexto.value;
-        nombre = 'texto';
-        formato = selectFormato.value;
-        extension = formato === 'texto' ? 'txt' : formato;
-      }
+      const opciones = {
+        tipos: [...form.querySelectorAll('input[name="tipos"]:checked')].map((c) => c.value),
+        extras: form.elements.extras.value.split(','),
+        modo: form.elements.modo.value,
+      };
+      const r = await procesar(opciones);
 
-      const tipos = [...form.querySelectorAll('input[name="tipos"]:checked')].map((c) => c.value);
-      const extras = form.elements.extras.value.split(',');
+      const recortado = pintarOriginal($('#visor-original'), r.partes);
+      const anonimizado = textoAnonimizado(r.partes);
+      $('#visor-anonimizado').textContent = anonimizado.length > LIMITE_VISTA ? anonimizado.slice(0, LIMITE_VISTA) : anonimizado;
+      $('#nota-vista').hidden = !(recortado || anonimizado.length > LIMITE_VISTA);
+      mostrarResumen(r.resumen);
+      mostrarAvisos(r.avisos);
 
-      const r = Anonimax.anonimizar(texto, { tipos, extras, modo: form.elements.modo.value, formato });
-
-      const limite = texto.length > LIMITE_VISTA ? LIMITE_VISTA : Infinity;
-      pintar($('#visor-original'), Anonimax.segmentar(texto, r.hallazgos, limite));
-      $('#visor-anonimizado').textContent = r.resultado.slice(0, limite === Infinity ? undefined : LIMITE_VISTA);
-      $('#nota-vista').hidden = limite === Infinity;
-      mostrarResumen(r.resumen, r.total);
-
-      ultimo = { texto: r.resultado, nombre, extension };
+      ultimo = r.salida;
+      $('#btn-descargar-txt').hidden = !ultimo.blob;          // el botón del .txt solo aparece con Word/PDF
+      const total = Object.values(r.resumen).reduce((a, b) => a + b, 0);
       seccionResultado.hidden = false;
-      estado.textContent = r.total
-        ? `Listo: se ocultaron ${r.total} datos. Revisá el resultado más abajo.`
+      estado.textContent = total
+        ? `Listo: se ocultaron ${total} datos. Revisá el resultado más abajo.`
         : 'Listo, pero no se encontró ningún dato con los tipos elegidos.';
       $('#titulo-resultado').setAttribute('tabindex', '-1');
-      $('#titulo-resultado').focus();                       // lleva el foco (y el lector de pantalla) al resultado
+      $('#titulo-resultado').focus();                         // lleva el foco (y el lector de pantalla) al resultado
       seccionResultado.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (error) {
-      estado.textContent = 'Ocurrió un error al leer o procesar el archivo. Probá de nuevo.';
-      console.error(error);
+      if (error.esEscaneado) {
+        estado.textContent = '';
+        mostrarError('error-origen',
+          'Este PDF no tiene texto que se pueda leer (parece escaneado, es decir una foto del documento). ' +
+          'No generamos un archivo para no darte una falsa sensación de seguridad: todavía no incluimos OCR.', inputArchivo);
+        inputArchivo.focus();
+      } else {
+        estado.textContent = 'No pudimos procesar el archivo. Puede estar dañado, protegido con contraseña o no ser un documento válido.';
+        console.error(error);
+      }
+    } finally {
+      botonEnviar.disabled = false;
     }
   });
 
@@ -195,23 +305,31 @@
   });
 
   /* ---------- Descargar y copiar ---------- */
-  $('#btn-descargar').addEventListener('click', () => {
-    if (!ultimo) return;
-    const tipoMime = { json: 'application/json', xml: 'application/xml', csv: 'text/csv' }[ultimo.extension] || 'text/plain';
-    const blob = new Blob([ultimo.texto], { type: `${tipoMime};charset=utf-8` });
+  function descargar(contenido, nombreArchivo, tipo) {
+    const blob = contenido instanceof Blob ? contenido : new Blob([contenido], { type: `${tipo};charset=utf-8` });
     const url = URL.createObjectURL(blob);
     const enlace = document.createElement('a');
     enlace.href = url;
-    enlace.download = `${ultimo.nombre}-anonimizado.${ultimo.extension}`;
+    enlace.download = nombreArchivo;
     enlace.click();
-    URL.revokeObjectURL(url);
-    estado.textContent = `Se descargó ${enlace.download}`;
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    estado.textContent = `Se descargó ${nombreArchivo}`;
+  }
+
+  $('#btn-descargar').addEventListener('click', () => {
+    if (!ultimo) return;
+    const nombre = `${ultimo.nombre}-anonimizado.${ultimo.extension}`;
+    descargar(ultimo.blob || ultimo.texto, nombre, TIPO_MIME[ultimo.extension] || 'text/plain');
+  });
+
+  $('#btn-descargar-txt').addEventListener('click', () => {
+    if (ultimo && ultimo.textoPlano) descargar(ultimo.textoPlano, `${ultimo.nombre}-anonimizado.txt`, 'text/plain');
   });
 
   $('#btn-copiar').addEventListener('click', async () => {
     if (!ultimo) return;
     try {
-      await navigator.clipboard.writeText(ultimo.texto);
+      await navigator.clipboard.writeText(ultimo.textoPlano || ultimo.texto);
       estado.textContent = 'Texto anonimizado copiado al portapapeles.';
     } catch (e) {
       estado.textContent = 'No se pudo copiar automáticamente. Seleccioná el texto y copialo a mano.';

@@ -67,8 +67,8 @@
 
           <div id="bloque-archivo" class="field">
             <div class="dropzone" id="zona-archivo">
-              <label for="archivo" class="label">Archivo (TXT, CSV, JSON, XML, HTML, MD · hasta 5 MB)</label>
-              <input type="file" id="archivo" name="archivo" accept=".txt,.csv,.tsv,.json,.xml,.html,.htm,.md,.log" aria-describedby="ayuda-archivo error-origen">
+              <label for="archivo" class="label">Archivo (Word, PDF, TXT, CSV, JSON, XML, HTML, MD · hasta 15 MB)</label>
+              <input type="file" id="archivo" name="archivo" accept=".docx,.pdf,.txt,.csv,.tsv,.json,.xml,.html,.htm,.md,.log" aria-describedby="ayuda-archivo error-origen">
               <p class="hint" id="ayuda-archivo">También podés arrastrar el archivo hasta este recuadro. ¿Querés probar? Descargá un <a href="../muestras/ejemplo.txt" download>ejemplo de prueba</a>.</p>
             </div>
           </div>
@@ -180,10 +180,12 @@
             <div class="viewer" id="visor-anonimizado" tabindex="0" role="region" aria-labelledby="titulo-anonimizado"></div>
           </div>
         </div>
+        <div id="avisos" class="alert alert--error mb-3" hidden></div>
         <p class="hint" id="nota-vista" hidden>Vista previa limitada a los primeros 100.000 caracteres. El archivo descargado contiene el documento completo.</p>
         <div class="actions mt-3">
           <button class="btn btn--primary" type="button" id="btn-descargar">Descargar anonimizado</button>
           <button class="btn btn--ghost" type="button" id="btn-copiar">Copiar texto</button>
+          <button class="btn btn--ghost" type="button" id="btn-descargar-txt" hidden>Descargar texto (.txt)</button>
         </div>
       </section>
     </section>
@@ -209,6 +211,8 @@
 
   <script src="../js/main.js" defer></script>
   <script src="../js/anonymizer.js" defer></script>
+  <script src="../js/docx-handler.js" defer></script>
+  <script src="../js/pdf-handler.js" defer></script>
   <script src="../js/anonimizar-ui.js" defer></script>
 </body>
 </html>
